@@ -1,0 +1,184 @@
+（一、）对于数据库的建立
+注意：以后的表达式中[]代表可写可不写，<>一定要写，写一个GO代表运行
+```java
+Create DataBase 数据库名 
+[ON
+[<filespec>[,...n]],/*指定数据库文件和文件组的属性*/
+[,<filegroup>[,...n]
+]
+[LOG ON{
+<filespec>[,...n]}]/*指定日志文件的属性*/
+[COLLATE collation_name]/*用来指定数据库的默认排序规则*/
+[FOR LOAD|FOR ATTACH]/*FOR LOAD 从一个备份数据库向新建数据库加载数据*/
+/*FOR ATTACH 从已有的的数据文件向数据库添加数据*/
+
+<filespec>::=
+[PRIMARY]
+([NAME=logic_file_name,]/*逻辑文件名*/
+FILENAME='OS_FILE_NAME'/*存放数据库的物理路径和文件名*/
+[,SIZE=size/*数据库文件的初始大小*/
+[,maxsize={max_size|UNLIMITED}]/*指定文件的最大大小*/
+[,FILEGROWTH=grow_increment]/*指定文件每次的增量*/
+)[,...n]
+<filegroup>::=
+FILEGROUP filegroup_name<filespec>[,...n]/*文件组名*/
+
+【例1】 创建一个名为TEST2的数据库，它有三个数据文件，其中主数据文件为100MB，最大大小为200MB，按20MB增长；
+2个辅数据文件为20MB，最大大小不限，按10%增长；有2个日志文件，大小均为50MB，最大大小均为100MB，按10MB增长。
+CREATE DATABASE TEST2
+	ON 
+	PRIMARY 
+	(	NAME = TEST2_data1,
+    		FILENAME = 'e:\sql\data\t2\test2_data１.mdf',
+    		SIZE = 100MB,
+    		MAXSIZE = 200MB
+	),
+        (	NAME = 'TEST2_data',
+    		FILENAME = 'e:\sql\data\t2\test2_data2.ndf',
+    		SIZE = 20MB,
+    		MAXSIZE = UNLIMITED,
+    		FILEGROWTH = 10%
+	)
+  (	NAME = TEST2_data3,
+    		FILENAME = 'e:\sql\data\t2\test2_data3.ndf',
+    		SIZE = 20MB,
+    		MAXSIZE = UNLIMITED,
+    		FILEGROWTH = 10%
+	)
+
+              LOG ON
+                 (	NAME = TEST2_log1,
+     	              FILENAME = 'e:\sql\data\t2\test2_log1.ldf',
+     	              SIZE = 50MB,
+     	              MAXSIZE = 100MB,
+     	              FILEGROWTH = 10MB
+                 ),
+              (	NAME = TEST2_log2,
+    		FILENAME = 'e:\sql\data\t2\test2_log2.ldf',
+    		SIZE = 50MB,
+    		MAXSIZE = 100MB,
+    		FILEGROWTH = 10MB
+	)
+  
+  
+  （二、）对数据库的操作
+  使用ALTER DATABASE命令对数据库可进行以下修改：
+  增加或删除数据文件
+  改变数据文件的大小和增长方式
+  改变日志文件的大小和增长方式 
+  增加或删除日志文件
+  增加或删除文件组
+  
+  语法格式：
+ALTER DATABASE database_name
+{ 	ADD FILE <filespec>[,…n][ TO FILEGROUP filegroup_name ]
+					/*在文件组中增加数据文件*/
+		| ADD LOG FILE <filespec>[,…n]           	/*增加日志文件*/
+		| REMOVE FILE logical_file_name           	/*删除数据文件*/
+		| ADD FILEGROUP filegroup_name          	/*增加文件组*/
+		| REMOVE FILEGROUP filegroup_name      	/*删除文件组*/
+		| MODIFY FILE <filespec>                 	/*更改文件属性*/
+		| MODIFY NAME = new_dbname           	/*数据库更名*/
+		| MODIFY FILEGROUP filegroup_name {filegroup_property |  NAME = new_filegroup_name }
+		| SET < optionspec > [ ,...n ] [ WITH < termination > ]  
+                                                                         /*设置数据库属性*/
+		| COLLATE < collation_name >   
+                                                                         /* 指定数据库排序规则*/
+}
+【例2】设已经创建了数据库XSCJ，它只有一个主数据文件，其逻辑文件名为XSCJ_Data，物理文件名为e:\sql\data\MSSQL\data\XSCJ_Data.mdf，
+大小为5MB，最大大小为50MB，增长方式为按10%增长； 
+ALTER DATABASE XSCJ
+	MODIFY FILE 
+	(	NAME = XSCJ_Data,
+                             MAXSIZE = UNLIMITED
+           )
+	GO                 /*这是第1次，将主数据文件的最大大小改为不限制。*/
+	ALTER DATABASE XSCJ
+		MODIFY FILE 
+		(	NAME = XSCJ_Data,
+			FILEGROWTH = 5MB
+                         )
+	GO                /*这是第2次，将主数据文件的增长方式改为按5MB增长。*/
+  
+  【例3】先为数据库XSCJ增加数据文件XSCJBAK。然后删除数据文件XSCJBAK。
+
+ALTER DATABASE XSCJ
+	ADD FILE
+	(	NAME = XSCJBAK,
+		FILENAME =   'e:\sql\data\MSSQL\data\XSCJBAK_dat. ndf',
+		SIZE = 10MB,
+		MAXSIZE = 50MB,
+		FILEGROWTH = 5%
+	)
+GO
+
+通过企业管理器观察数据库XSCJ是否增加数据文件XSCJBAK。
+ALTER DATABASE XSCJ
+            REMOVE FILE XSCJBAK
+GO
+
+【例4】为数据库XSCJ添加文件组FGROUP，并为此文件组添加两个大小均为10MB的数据文件。
+
+ALTER DATABASE XSCJ
+         ADD FILEGROUP FGROUP
+GO
+ALTER DATABASE XSCJ
+	 ADD FILE
+	  (	NAME = XSCJ_DATA2,
+		FILENAME = 'e:\sql\data\MSSQL\data\XSCJ_Data2.ndf',
+		SIZE = 10MB,
+		MAXSIZE = 30MB,
+		FILEGROWTH = 5MB
+	),
+	(	NAME = XSCJ_DATA3,
+ 	 	FILENAME = 'e:\sql\data\MSSQL\data\XSCJ_Data3.ndf',
+ 	 	SIZE = 10MB,
+ 	 	MAXSIZE = 30MB,
+ 	 	FILEGROWTH = 5MB
+	)
+	TO FILEGROUP FGROUP
+GO
+【例5】从数据库中删除文件组，将示例4添加到XSCJ数据库中的数据组FGROUP删除。注意被删除的文件组中的数据文件必须先删除，且不能删除主文件组。
+
+ALTER DATABASE TEST
+	 REMOVE FILE TEST_DATA2
+GO
+ALTER DATABASE TEST
+              REMOVE FILE TEST_DATA3
+GO
+ALTER DATABASE TEST
+	REMOVE FILEGROUP TGROUP
+GO
+
+ALTER DATABASE XSCJ
+	ADD LOG FILE
+	(	NAME = XSCJ_LOG2,
+ 	 	FILENAME = 'e:\sql\data\MSSQL\data\XSCJ_Log2.ldf',
+ 	 	SIZE = 5MB,
+ 	 	MAXSIZE =10 MB,
+ 	 	FILEGROWTH = 1MB
+	)
+GO
+
+【例6】从数据库XSCJ中删除一个日志文件，将日志文件XSCJ_LOG2删除。注意不能删除主日志文件。
+
+ALTER DATABASE TEST
+	REMOVE FILE XSCJ_LOG2
+GO
+ALTER DATABASE XSCJ
+	MODIFY NAME = JUST_TEST
+GO
+
+（三、）删除数据库
+语法格式：
+DROP DATABASE database_name[,…n]
+其中database_name是要删除的数据库名。
+例如:要删除数据库TEST，使用命令：
+DROP DATABASE TEST
+GO
+
+注意：（1）在SQL中一般大小写不分（是在SQL Service运行），但取名是写大写便显示的是大写
+（2）在运行前要注意指定的操作对象，应选中要操作的数据库，否则默认系统数据库
+
+  
+
