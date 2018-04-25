@@ -1,0 +1,103 @@
+（一、）表的创建
+创建一个表（在数据库的基础上，如果没有选中在指定的数据库中，那么默认在master中建立表格）
+CREATE TABLE <表名>
+      （<列名> <数据类型>[ <列级完整性约束条件> ]
+      [，<列名> <数据类型>[ <列级完整性约束条件>] ] …
+      [，<表级完整性约束条件> ] ）；
+   如果完整性约束条件涉及到该表的多个属性列，则必须定义在表级上，否则既可以定义在列级也可以定义在表级。
+ 注：  若一个表将多个表联系在一起，那么这张表就应该要定义外码
+ 例5]  建立“学生”表Student，学号是主码，姓名取值唯一。
+     
+    CREATE TABLE Student          
+	      (Sno   CHAR(9) PRIMARY KEY, /* 列级完整性约束条件*/                  
+            Sname  CHAR(20) UNIQUE,     /* Sname取唯一值*/
+            Ssex    CHAR(2),
+            Sage   SMALLINT,
+            Sdept  CHAR(20)
+           )； 
+[例6] 建立一个“课程”表Course
+      CREATE TABLE  Course
+               ( Cno       CHAR(4) PRIMARY KEY,
+                 Cname  CHAR(40),            
+                 Cpno     CHAR(4) ,               	                      
+                 Ccredit  SMALLINT,
+                FOREIGN KEY (Cpno) REFERENCES  Course(Cno) 
+            );
+ [例7]  建立一个“学生选课”表SC
+	CREATE TABLE  SC
+       	(Sno  CHAR(9), 
+       	Cno  CHAR(4),  
+       	Grade    SMALLINT,
+       	PRIMARY KEY (Sno,Cno),  
+                     /* 主码由两个属性构成，必须作为表级完整性进行定义*/
+       	FOREIGN KEY (Sno) REFERENCES Student(Sno),
+                    /* 表级完整性约束条件，Sno是外码，被参照表是Student */
+       	FOREIGN KEY (Cno) REFERENCES Course(Cno)
+                   /* 表级完整性约束条件， Cno是外码，被参照表是Course*/
+		);
+           数据类型汇总
+数据类型	                  含义
+CHAR(n)	                   长度为n的定长字符串
+VARCHAR(n)	               最大长度为n的变长字符串
+INT	                       长整数（也可以写作INTEGER）
+SMALLINT	                 短整数
+NUMERIC(p，d)              定点数，由p位数字（不包括符号、小数点）组成，小数后面有d位数字
+REAL	                     取决于机器精度的浮点数
+Double Precision	         取决于机器精度的双精度浮点数
+FLOAT(n)	                 浮点数，精度至少为n位数字
+DATE                       日期，包含年、月、日，格式为YYYY-MM-DD
+TIME	                     时间，包含一日的时、分、秒，格式为HH:MM:SS
+
+（二）表的修改
+修改基本表：
+ALTER TABLE <表名>
+[ ADD <新列名> <数据类型> [ 完整性约束 ] ]/*增加新的属性（即列）*/
+[ DROP <完整性约束名> ]/*删除完整性约束条件
+[ ALTER COLUMN<列名> <数据类型> ]；/*增加新的属性（即列）*/
+[例8]向Student表增加“入学时间”列，其数据类型为日期型。
+     ALTER TABLE Student ADD S_entrance DATETIME；
+不论基本表中原来是否已有数据，新增加的列一律为空值。
+
+[例9]将年龄的数据类型由字符型（假设原来的数据类型是字符型）改为整数。
+    		ALTER TABLE Student 
+        ALTER COLUMN Sage INT；
+        
+[例10]增加课程名称必须取唯一值的约束条件。
+    		ALTER TABLE Course ADD UNIQUE(Cname); 
+        
+删除基本表 ：      
+DROP TABLE <表名>［RESTRICT| CASCADE］；
+RESTRICT：删除表是有限制的。
+欲删除的基本表不能被其他表的约束所引用，如果存在依赖该表的对象，则此表不能被删除
+CASCADE：删除该表没有限制。
+在删除基本表的同时，相关的依赖对象一起删除 
+[例11]  删除Student表
+     DROP TABLE  Student  CASCADE ;
+基本表定义被删除，数据被删除
+表上建立的索引、视图、触发器等一般也将被删除 
+
+（三）索引的建立与删除
+建立索引的目的：加快查询速度
+谁可以建立索引
+DBA 或 表的属主（即建立表的人）
+DBMS一般会自动建立以下列上的索引
+ PRIMARY  KEY
+ UNIQUE
+谁维护索引
+     DBMS自动完成 
+使用索引
+     DBMS自动选择是否使用索引以及使用哪些索引
+     
+RDBMS中索引一般采用B+树、HASH索引来实现
+B+树索引具有动态平衡的优点 
+HASH索引具有查找速度快的特点
+采用B+树，还是HASH索引 则由具体的RDBMS来决定
+索引是关系数据库的内部实现技术，属于内模式的范畴 
+CREATE INDEX语句定义索引时，可以定义索引是唯一索引、非唯一索引或聚簇索引 
+
+
+
+
+
+
+
