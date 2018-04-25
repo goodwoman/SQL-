@@ -93,7 +93,45 @@ B+树索引具有动态平衡的优点
 HASH索引具有查找速度快的特点
 采用B+树，还是HASH索引 则由具体的RDBMS来决定
 索引是关系数据库的内部实现技术，属于内模式的范畴 
-CREATE INDEX语句定义索引时，可以定义索引是唯一索引、非唯一索引或聚簇索引 
+CREATE INDEX语句定义索引时，可以定义索引是唯一索引、非唯一索引或聚簇索引
+
+建立索引：
+语句格式为
+CREATE [UNIQUE] [CLUSTER] INDEX <索引名> 
+ON <表名>(<列名>[<次序>][,<列名>[<次序>] ]…)；
+
+[例13] CREATE CLUSTERED  INDEX Stusname 
+           ON   Student(Sname)；
+在Student表的Sname（姓名）列上建立一个聚簇索引
+在最经常查询的列上建立聚簇索引以提高查询效率 
+一个基本表上最多只能建立一个聚簇索引 
+经常更新的列不宜建立聚簇索引 
+
+ [例14]为学生-课程数据库中的Student，Course，SC三个表建  立索引。
+     
+CREATE UNIQUE INDEX  Stusno ON Student(Sno)；
+CREATE UNIQUE INDEX  Coucno ON Course(Cno)；
+CREATE UNIQUE INDEX  SCno ON SC(Sno ASC，Cno DESC)；
+     
+     /* Student表按学号升序建唯一索引
+      Course表按课程号升序建唯一索引
+      SC表按学号升序和课程号降序建唯一索引
+      默认为升序*/
+      
+删除索引
+DROP INDEX <索引名>；
+删除索引时，系统会从数据字典中删去有关该索引的
+描述。
+[例15]  删除Student表的Stusname索引
+	   DROP INDEX Stusname；
+
+注意：关于索引的详细介绍：https://blog.csdn.net/u013310119/article/details/52527632?_t=1524665864
+
+
+
+
+
+
 
 
 
